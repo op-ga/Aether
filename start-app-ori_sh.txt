@@ -8,27 +8,12 @@ NC="\033[0m"
 BACKEND_URL="http://localhost:3000"
 FRONTEND_URL="http://localhost:5173"
 
-# ─── Prerequisite Check
-# Ensure lsof is installed before proceeding.
-if ! command -v lsof &> /dev/null; then
-    echo -e "${RED}Error: 'lsof' command is not found. Please install it to continue.${NC}"
-    exit 1
-fi
-
 # ─── Kill Port Occupants
-# Finds and terminates any process running on a given port.
 kill_port() {
     local port=$1
-    local pid=$(lsof -ti tcp:$port)
-
-    if [ -n "$pid" ]; then
-        echo -e "${RED}Process with PID $pid found on port $port. Terminating...${NC}"
-        kill -9 $pid
-        # Add a brief pause to ensure the OS releases the port.
-        sleep 1
-        echo "Process on port $port terminated."
-    else
-        echo -e "${GREEN}Port $port is already clear.${NC}"
+    if lsof -ti tcp:$port >/dev/null; then
+        echo -e "${RED}Killing process on port $port...${NC}"
+        kill -9 $(lsof -ti tcp:$port)
     fi
 }
 

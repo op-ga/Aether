@@ -183,11 +183,27 @@ app.post("/override", (req, res) => {
 });
 
 // --- PDF EXPORT ENDPOINT ---
+app.post("/export", async (req, res, next) => {
+  // Log and persist the received request body
+  console.log("--- /export request body ---");
+  console.log(req.body);
+  const fs = require("fs");
+  const path = require("path");
+  try {
+    const reqBodyPath = path.resolve(
+      __dirname,
+      "../samples/export_request_body.json"
+    );
+    fs.writeFileSync(reqBodyPath, JSON.stringify(req.body, null, 2));
+  } catch (e) {
+    console.error("Failed to write export_request_body.json:", e);
+  }
 
-app.get("/export", async (req, res) => {
-  const { content } = req.query;
-  if (!content) {
-    return res.status(400).json({ error: "Content parameter is required" });
+  const { title, body } = req.body;
+  if (!title || !body) {
+    return res
+      .status(400)
+      .json({ error: "Content must include title and body" });
   }
 
   if (!puppeteerReady || !browserInstance) {
@@ -199,14 +215,8 @@ app.get("/export", async (req, res) => {
 
   let page;
   try {
-    const contentObj = JSON.parse(decodeURIComponent(content));
-    if (!contentObj.title || !contentObj.body) {
-      return res.status(400).json({
-        error: "Content must include title and body",
-      });
-    }
-
     page = await browserInstance.newPage();
+    const contentObj = { title, body };
     await page.setContent(previewTemplate(contentObj));
     const pdf = await page.pdf({
       format: "A4",
@@ -218,6 +228,18 @@ app.get("/export", async (req, res) => {
         left: "1cm",
       },
     });
+    // Log and persist the first 16 bytes of the PDF buffer
+    console.log("--- /export PDF buffer (first 16 bytes) ---");
+    console.log(pdf.slice(0, 16));
+    try {
+      const pdfFirst16Path = path.resolve(
+        __dirname,
+        "../samples/export_pdf_first16.bin"
+      );
+      fs.writeFileSync(pdfFirst16Path, pdf.slice(0, 16));
+    } catch (e) {
+      console.error("Failed to write export_pdf_first16.bin:", e);
+    }
     res.setHeader("Content-Disposition", "inline; filename=output.pdf");
     res.setHeader("Content-Type", "application/pdf");
     res.send(pdf);
