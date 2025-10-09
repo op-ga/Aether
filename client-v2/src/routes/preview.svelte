@@ -15,12 +15,16 @@
   <h1>Preview Route (client-v2)</h1>
   <div style="margin-top:12px">
     <PromptForm
-      on:loading={(e) => {
-        uiState.status = e.detail.loading ? "loading" : "idle";
-      }}
-      on:result={(e) => {
-        previewStore.set(e.detail.html);
-        uiState.status = "idle";
+      on:submit={async (e) => {
+        const { prompt } = e.detail;
+        console.log("Submit received:", prompt); // For testing
+        uiState.status = "loading";
+        // We'll implement the actual API call in the next step
+        // For now, just verify the event handling
+        setTimeout(() => {
+          uiState.status = "idle";
+          console.log("Submit handled"); // For testing
+        }, 100);
       }}
       on:error={(e) => {
         uiState.status = "idle";
