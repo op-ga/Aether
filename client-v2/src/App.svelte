@@ -2,7 +2,7 @@
   // Phase A: show wired UI for manual verification
   import PromptForm from "./components/PromptForm.svelte";
   import PreviewWindow from "./components/PreviewWindow.svelte";
-  import { promptStore } from "./lib/promptStore.js";
+  import { promptStore } from "./stores/promptStore.js";
 
   $: uiState = {
     status: $promptStore.loading ? "loading" : "idle",
@@ -10,7 +10,7 @@
   };
 
   function handleSubmit(e) {
-    promptStore.submitPrompt(e.detail.prompt);
+    promptStore.submit(e.detail.prompt);
   }
 </script>
 

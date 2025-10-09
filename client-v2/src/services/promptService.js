@@ -34,13 +34,15 @@ class PromptService {
       throw new Error(validation.error);
     }
 
-    // Note: Transport layer will be injected later
-    // This is pure business logic
-    return {
-      success: true,
-      content: { title: "", body: "" },
-      metadata: {},
-    };
+    const { transportAdapter } = await import("../transport/transportAdapter");
+    const response = await transportAdapter.post("/prompt", { prompt });
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || "Generation failed");
+    }
+
+    return result.data || result;
   }
 
   /**
